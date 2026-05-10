@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useApp } from "@/lib/store";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, formatRupiahInput } from "@/lib/utils";
 
 export default function SaldoModal({ isOpen, onClose }) {
   const { state, updateSaldo } = useApp();
@@ -10,12 +10,13 @@ export default function SaldoModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
-      setNewSaldo(state.saldoMakan.toString());
+      setNewSaldo(formatRupiahInput(state.saldoMakan));
     }
   }, [isOpen, state.saldoMakan]);
 
   const handleSave = () => {
-    const val = Number(newSaldo);
+    // Hilangkan semua non-digit (termasuk titik) sebelum dikirim
+    const val = Number(newSaldo.replace(/[^\d]/g, ""));
     if (Number.isFinite(val) && val >= 0) {
       updateSaldo(val);
       onClose();
@@ -50,13 +51,11 @@ export default function SaldoModal({ isOpen, onClose }) {
         <input 
           className="saldo-input" 
           id="newSaldo" 
-          type="number" 
-          min="0" 
-          step="1000" 
+          type="text" 
           inputMode="numeric" 
-          placeholder="Contoh: 420000"
+          placeholder="Contoh: 420.000"
           value={newSaldo}
-          onChange={(e) => setNewSaldo(e.target.value)}
+          onChange={(e) => setNewSaldo(formatRupiahInput(e.target.value))}
           onKeyDown={handleKeyDown}
           autoFocus
         />

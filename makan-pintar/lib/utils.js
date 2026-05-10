@@ -12,6 +12,19 @@ export function formatRupiah(value) {
 }
 
 /**
+ * Format input teks ke angka dengan pemisah ribuan (titik) secara real-time
+ * @param {string|number} value
+ * @returns {string}
+ */
+export function formatRupiahInput(value) {
+  const numericVal = String(value).replace(/[^\d]/g, "");
+  if (!numericVal) return "";
+  return new Intl.NumberFormat("id-ID", {
+    maximumFractionDigits: 0,
+  }).format(numericVal);
+}
+
+/**
  * Hitung budget harian
  * @param {number} saldo
  * @param {number} hari

@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import Switch from "../ui/Switch";
+import { formatRupiahInput } from "@/lib/utils";
 
 export default function SettingRow({ label, value, type = "text", editable = false, isToggle = false, onSave, onToggle }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(value);
+  
+  // Initialize state dengan format angka jika tipenya number
+  const [editValue, setEditValue] = useState(() => {
+    if (type === "number") return formatRupiahInput(value);
+    return value;
+  });
 
   const handleSave = () => {
     setIsEditing(false);
@@ -32,10 +38,16 @@ export default function SettingRow({ label, value, type = "text", editable = fal
         <div className="setting-value" style={{ display: "flex", justifyContent: "flex-end" }}>
           <input
             className="inline-edit"
-            type={type === "number" ? "text" : "text"}
+            type="text"
             inputMode={type === "number" ? "numeric" : "text"}
             value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
+            onChange={(e) => {
+              if (type === "number") {
+                setEditValue(formatRupiahInput(e.target.value));
+              } else {
+                setEditValue(e.target.value);
+              }
+            }}
             onKeyDown={handleKeyDown}
             onBlur={handleSave}
             autoFocus

@@ -12,7 +12,8 @@ export default function WorthItSheet({ isOpen, onClose }) {
   const [showResult, setShowResult] = useState(false);
 
   const budgetHarian = getDailyBudget(state.saldoMakan, state.hariKeKiriman);
-  const afterSpent = state.todaySpent + Number(foodPrice);
+  const foodPriceNum = parsePriceInput(foodPrice);
+  const afterSpent = state.todaySpent + foodPriceNum;
   const remaining = budgetHarian - afterSpent;
   const percent = Math.min(Math.max((afterSpent / budgetHarian) * 100, 0), 100);
 
@@ -61,13 +62,15 @@ export default function WorthItSheet({ isOpen, onClose }) {
             <span>Rp</span>
             <input
               id="worthPrice"
-              type="number"
-              min="0"
-              step="500"
+              type="text"
               placeholder="25.000"
               inputMode="numeric"
               value={foodPrice}
-              onChange={(e) => setFoodPrice(parsePriceInput(e.target.value))}
+              onChange={(e) => {
+                import("@/lib/utils").then(({ formatRupiahInput }) => {
+                  setFoodPrice(formatRupiahInput(e.target.value));
+                });
+              }}
             />
           </div>
           <button className="feature-cta" type="submit">Cek Sekarang →</button>
@@ -76,7 +79,7 @@ export default function WorthItSheet({ isOpen, onClose }) {
         <div className="active">
           <div className="result-hero">
             <h3>{foodName || "Makanan ini"}</h3>
-            <p>{formatRupiah(Number(foodPrice))}</p>
+            <p>{formatRupiah(foodPriceNum)}</p>
             <div className="budget-bar-wrap">
               <div className="budget-bar-label">
                 <span>Budget hari ini: {formatRupiah(budgetHarian)}</span>

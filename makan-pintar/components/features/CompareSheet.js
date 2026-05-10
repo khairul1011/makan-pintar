@@ -12,8 +12,8 @@ export default function CompareSheet({ isOpen, onClose }) {
 
   const budgetHarian = getDailyBudget(state.saldoMakan, state.hariKeKiriman);
   
-  const priceA = Number(form.priceA) || 0;
-  const priceB = Number(form.priceB) || 0;
+  const priceA = parsePriceInput(form.priceA) || 0;
+  const priceB = parsePriceInput(form.priceB) || 0;
   const nameA = form.nameA || "Pilihan A";
   const nameB = form.nameB || "Pilihan B";
 
@@ -67,12 +67,15 @@ export default function CompareSheet({ isOpen, onClose }) {
               <span>Rp</span>
               <input
                 id="compareAPrice"
-                type="number"
-                min="0"
-                step="500"
+                type="text"
                 placeholder="20.000"
+                inputMode="numeric"
                 value={form.priceA}
-                onChange={(e) => setForm({ ...form, priceA: parsePriceInput(e.target.value) })}
+                onChange={(e) => {
+                  import("@/lib/utils").then(({ formatRupiahInput }) => {
+                    setForm({ ...form, priceA: formatRupiahInput(e.target.value) });
+                  });
+                }}
               />
             </div>
           </div>
@@ -91,12 +94,15 @@ export default function CompareSheet({ isOpen, onClose }) {
               <span>Rp</span>
               <input
                 id="compareBPrice"
-                type="number"
-                min="0"
-                step="500"
+                type="text"
                 placeholder="15.000"
+                inputMode="numeric"
                 value={form.priceB}
-                onChange={(e) => setForm({ ...form, priceB: parsePriceInput(e.target.value) })}
+                onChange={(e) => {
+                  import("@/lib/utils").then(({ formatRupiahInput }) => {
+                    setForm({ ...form, priceB: formatRupiahInput(e.target.value) });
+                  });
+                }}
               />
             </div>
           </div>
