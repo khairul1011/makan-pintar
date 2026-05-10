@@ -1,0 +1,3521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Makan Pintar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass: rgba(255, 255, 255, 0.06);
+      --glass-strong: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.7);
+      --faint: rgba(255, 255, 255, 0.48);
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --accent: var(--yellow);
+      --accent-deep: #f59e0b;
+      --mode-glow: rgba(251, 191, 36, 0.1);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      --card-radius: 20px;
+      --button-radius: 12px;
+      --max-spend: 80000;
+      --budget-ratio: 43.75%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 30%, #0d1b3e 60%, #0a0a1a 100%);
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+    }
+
+    body::before {
+      z-index: 0;
+      opacity: 0.03;
+      background-image:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.85) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.85) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.85) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.85) 75%);
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      background-size: 16px 16px;
+      mix-blend-mode: screen;
+    }
+
+    body::after {
+      z-index: 0;
+      background:
+        radial-gradient(circle at 18% 24%, rgba(139, 92, 246, 0.15), transparent 24%),
+        radial-gradient(circle at 82% 62%, rgba(59, 130, 246, 0.1), transparent 28%);
+      filter: blur(18px);
+      opacity: 0.95;
+      animation: ambientFloat 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambientFloat {
+      from {
+        transform: translate3d(0, -18px, 0) scale(1);
+      }
+
+      to {
+        transform: translate3d(0, 24px, 0) scale(1.04);
+      }
+    }
+
+    * {
+      scrollbar-color: rgba(255, 255, 255, 0.22) rgba(255, 255, 255, 0.04);
+      scrollbar-width: thin;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      width: min(1180px, calc(100% - 32px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 12px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      background: var(--glass);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .brand-text {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .brand-subtitle {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .glass-card,
+    .glass-pill,
+    .chat-panel,
+    .modal-card {
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-card {
+      border-radius: var(--card-radius);
+    }
+
+    .glass-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .glass-pill {
+      border-radius: 999px;
+    }
+
+    .icon-button {
+      display: inline-grid;
+      min-width: 44px;
+      min-height: 44px;
+      place-items: center;
+      border-radius: var(--button-radius);
+      background: var(--glass);
+      transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .icon-button:hover,
+    .action-button:hover,
+    .ai-button:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .ai-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 12px 16px;
+      color: var(--text);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .column {
+      display: grid;
+      gap: 24px;
+    }
+
+    .card-pad {
+      padding: 22px;
+    }
+
+    .status-card {
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow), 0 0 40px var(--mode-glow);
+    }
+
+    .status-card::after {
+      position: absolute;
+      right: -64px;
+      top: -84px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--accent) 22%, transparent);
+      content: "";
+      filter: blur(10px);
+      pointer-events: none;
+    }
+
+    .status-top,
+    .status-bottom,
+    .section-header,
+    .history-date,
+    .chat-header,
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .mode-badge {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 48%, transparent);
+      border-radius: 999px;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .eyebrow {
+      margin: 28px 0 8px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .budget-amount {
+      margin: 0;
+      font-size: clamp(2.7rem, 8vw, 5rem);
+      font-weight: 800;
+      line-height: 0.96;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .status-bottom {
+      position: relative;
+      z-index: 1;
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .balance-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--faint);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .balance-value {
+      font-size: 1.08rem;
+      font-weight: 800;
+    }
+
+    .ring-card {
+      display: grid;
+      justify-items: center;
+      gap: 18px;
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 160px;
+      aspect-ratio: 1;
+    }
+
+    .ring-wrap::before {
+      position: absolute;
+      inset: 12px;
+      z-index: -1;
+      border-radius: 50%;
+      background: var(--mode-glow);
+      box-shadow: 0 0 54px color-mix(in srgb, var(--accent) 38%, transparent);
+      content: "";
+      filter: blur(12px);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .progress-ring {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+    }
+
+    .ring-track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.11);
+      stroke-width: 14;
+    }
+
+    .ring-progress {
+      fill: none;
+      stroke: url(#ringGradient);
+      stroke-linecap: round;
+      stroke-width: 14;
+      stroke-dasharray: 628;
+      stroke-dashoffset: 628;
+      transition: stroke-dashoffset 0.7s ease, stroke 0.3s ease;
+      filter: drop-shadow(0 0 12px color-mix(in srgb, var(--accent) 45%, transparent));
+    }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+    }
+
+    .ring-percent {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .ring-copy {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .meal-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .mini-stat {
+      min-width: 0;
+      padding: 13px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      text-align: center;
+    }
+
+    .mini-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .mini-stat strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.88rem;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .section-note {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .food-list,
+    .history-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .food-entry {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .food-entry:hover,
+    .history-row:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .food-emoji {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 1.45rem;
+    }
+
+    .food-name {
+      margin: 0;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .food-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .meal-badge {
+      padding: 3px 8px;
+      border-radius: 999px;
+      color: var(--yellow);
+      background: rgba(251, 191, 36, 0.13);
+      font-weight: 800;
+    }
+
+    .food-price {
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      display: none;
+      margin-top: 18px;
+      padding: 28px;
+      border: 1px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty-state span {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 2rem;
+    }
+
+    .primary-cta {
+      display: inline-flex;
+      width: 100%;
+      min-height: 54px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 18px;
+      border-radius: var(--button-radius);
+      background: linear-gradient(135deg, #22c55e, var(--green));
+      box-shadow: 0 14px 26px rgba(74, 222, 128, 0.28);
+      color: #072410;
+      font-weight: 800;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .primary-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 34px rgba(74, 222, 128, 0.35);
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .quick-actions-panel {
+      padding: 28px 28px 46px;
+    }
+
+    .quick-actions-panel .section-header {
+      margin-bottom: 0;
+    }
+
+    .quick-actions-panel .section-header + .quick-actions {
+      margin-top: 36px;
+    }
+
+    .quick-actions.single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .quick-action-card {
+      display: grid;
+      min-height: 118px;
+      align-content: center;
+      justify-items: center;
+      gap: 8px;
+      padding: 18px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      text-align: center;
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      pointer-events: auto;
+      touch-action: manipulation;
+      transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .quick-action-card:hover {
+      transform: scale(1.03);
+      border-color: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .quick-action-card:active {
+      transform: scale(0.97);
+    }
+
+    .quick-action-icon {
+      font-size: 1.75rem;
+      line-height: 1;
+    }
+
+    .quick-action-title {
+      font-weight: 800;
+    }
+
+    .quick-action-desc {
+      max-width: 160px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .quick-mode-badge {
+      margin-left: auto;
+      padding: 7px 10px;
+      font-size: 0.78rem;
+    }
+
+    .action-button {
+      display: inline-flex;
+      min-height: 52px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      color: var(--text);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+      transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .action-button:hover {
+      transform: scale(1.02);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .chart-card {
+      overflow: hidden;
+    }
+
+    .chart-shell {
+      position: relative;
+      height: 230px;
+      margin-top: 22px;
+      padding: 14px 8px 30px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .budget-line {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      z-index: 2;
+      bottom: calc(30px + var(--budget-ratio));
+      border-top: 1px dashed rgba(255, 255, 255, 0.85);
+      transition: bottom 0.3s ease;
+    }
+
+    .budget-line span {
+      position: absolute;
+      right: 0;
+      bottom: 5px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    .bar-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      height: 100%;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      align-items: end;
+    }
+
+    .bar-item {
+      display: grid;
+      height: 100%;
+      grid-template-rows: 1fr auto;
+      gap: 8px;
+      justify-items: center;
+      min-width: 0;
+    }
+
+    .bar-track {
+      display: flex;
+      width: 100%;
+      max-width: 36px;
+      height: 100%;
+      align-items: end;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.065);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      width: 100%;
+      height: 0;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(74, 222, 128, 0.7));
+      box-shadow: 0 0 18px rgba(74, 222, 128, 0.38);
+      transition: height 0.85s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .bar-fill.over {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(248, 113, 113, 0.7));
+      box-shadow: 0 0 18px rgba(248, 113, 113, 0.4);
+    }
+
+    .bar-fill.below {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(251, 191, 36, 0.72));
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.36);
+    }
+
+    .bar-label {
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+    }
+
+    .history-list {
+      max-height: 242px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .history-list::-webkit-scrollbar,
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb,
+    .chat-messages::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .history-list::-webkit-scrollbar-track,
+    .chat-messages::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .history-date {
+      margin: 12px 0 2px;
+      color: var(--faint);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .history-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 13px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .history-row span {
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+
+    .history-row strong {
+      white-space: nowrap;
+    }
+
+    .chat-panel {
+      position: fixed;
+      z-index: 20;
+      top: 0;
+      right: 0;
+      display: grid;
+      width: min(400px, 100vw);
+      height: 100vh;
+      grid-template-rows: auto 1fr auto;
+      padding: 18px;
+      border-radius: 22px 0 0 22px;
+      transform: translateX(106%);
+      transition: transform 0.3s ease;
+    }
+
+    .chat-panel.open {
+      transform: translateX(0);
+    }
+
+    .chat-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      margin: 18px -4px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .message {
+      max-width: 86%;
+      padding: 12px 14px;
+      border-radius: 18px;
+      font-size: 0.9rem;
+      line-height: 1.48;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      border-bottom-right-radius: 6px;
+      background: color-mix(in srgb, var(--accent) 78%, #ffffff 5%);
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .message.ai {
+      align-self: flex-start;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-bottom-left-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      color: var(--text);
+    }
+
+    .chat-input-area {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .chat-input,
+    .saldo-input {
+      min-width: 0;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      outline: none;
+      border-radius: var(--button-radius);
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text);
+    }
+
+    .chat-input {
+      height: 46px;
+      padding: 0 13px;
+    }
+
+    .chat-input::placeholder,
+    .saldo-input::placeholder {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .send-button,
+    .save-button {
+      min-height: 46px;
+      border-radius: var(--button-radius);
+      background: var(--accent);
+      color: #111827;
+      font-weight: 800;
+      transition: transform 0.3s ease, filter 0.3s ease;
+    }
+
+    .send-button {
+      padding: 0 16px;
+    }
+
+    .save-button {
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .send-button:hover,
+    .save-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .overlay,
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      background: rgba(3, 4, 18, 0.48);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .overlay.open,
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-overlay {
+      z-index: 25;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .modal-card {
+      width: min(420px, 100%);
+      padding: 22px;
+      border-radius: var(--card-radius);
+      transform: translateY(20px) scale(0.97);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.open .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.08rem;
+      font-weight: 800;
+    }
+
+    .current-balance {
+      margin: 22px 0 14px;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .current-balance span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .current-balance strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 1.45rem;
+    }
+
+    .input-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .saldo-input {
+      width: 100%;
+      height: 50px;
+      padding: 0 14px;
+      font-weight: 700;
+    }
+
+    .app-page {
+      display: none;
+      min-height: calc(100vh - 120px);
+      padding-bottom: 90px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .app-page.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .dashboard-grid.app-page.active {
+      display: grid;
+    }
+
+    .app-page.is-fading {
+      opacity: 0;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 8px 0 22px;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.1rem);
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .page-subtitle {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .history-toggle {
+      position: sticky;
+      top: 98px;
+      z-index: 8;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      width: 100%;
+      margin-bottom: 20px;
+      padding: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      overflow: hidden;
+    }
+
+    .history-toggle::before {
+      position: absolute;
+      inset: 5px auto 5px 5px;
+      width: calc(50% - 5px);
+      border-radius: 999px;
+      background: #ffffff;
+      content: "";
+      transform: translateX(var(--toggle-x, 0));
+      transition: transform 0.3s ease;
+    }
+
+    .history-toggle[data-mode="calories"] {
+      --toggle-x: 100%;
+    }
+
+    .toggle-option {
+      position: relative;
+      z-index: 1;
+      min-height: 44px;
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 800;
+      transition: color 0.3s ease;
+    }
+
+    .toggle-option.active {
+      color: #111827;
+    }
+
+    .history-content {
+      display: grid;
+      gap: 18px;
+    }
+
+    .history-chart-shell {
+      padding-left: 46px;
+    }
+
+    .chart-axis {
+      position: absolute;
+      top: 14px;
+      bottom: 30px;
+      left: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-align: right;
+      pointer-events: none;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .summary-card {
+      min-width: 0;
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+    }
+
+    .summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .summary-card strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 1.08rem;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .history-page-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-entry {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 13px;
+      padding: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .history-entry:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .history-value {
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .recipe-context {
+      margin-bottom: 18px;
+    }
+
+    .recipe-context p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .recipe-context strong {
+      color: var(--text);
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      margin: 0 -4px 18px;
+      overflow-x: auto;
+      padding: 4px;
+      scrollbar-width: none;
+    }
+
+    .filter-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-pill {
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 0 15px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-weight: 800;
+      transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+    }
+
+    .filter-pill.active,
+    .filter-pill:hover {
+      background: var(--green);
+      color: #082312;
+      transform: translateY(-1px);
+    }
+
+    .recipe-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .recipe-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 16px;
+      padding: 18px;
+    }
+
+    .recipe-emoji {
+      display: grid;
+      width: 64px;
+      height: 64px;
+      place-items: center;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 3rem;
+    }
+
+    .recipe-name {
+      margin: 0 104px 8px 0;
+      font-size: 1.08rem;
+      font-weight: 800;
+    }
+
+    .recipe-meta {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .ingredient-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      padding: 6px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .ai-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 6px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-size: 0.72rem;
+      font-weight: 800;
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+    }
+
+    .recipe-action {
+      grid-column: 1 / -1;
+      min-height: 46px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--button-radius);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-weight: 800;
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .recipe-action:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 10px 0 22px;
+    }
+
+    .avatar {
+      display: grid;
+      width: 72px;
+      height: 72px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      font-size: 1.4rem;
+      font-weight: 800;
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+    }
+
+    .settings-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .settings-card h3 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+    }
+
+    .setting-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      min-height: 52px;
+      padding: 12px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .setting-row:first-of-type {
+      border-top: 0;
+    }
+
+    .setting-label {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .setting-value {
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .edit-setting {
+      margin-left: 10px;
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .inline-edit {
+      width: min(170px, 42vw);
+      height: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      padding: 0 10px;
+      text-align: right;
+      outline: none;
+      font-weight: 800;
+    }
+
+    .switch {
+      position: relative;
+      width: 50px;
+      height: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      transition: background 0.3s ease;
+    }
+
+    .switch::after {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #ffffff;
+      content: "";
+      transition: transform 0.3s ease;
+    }
+
+    .switch.on {
+      background: var(--green);
+    }
+
+    .switch.on::after {
+      transform: translateX(20px);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      height: calc(72px + env(safe-area-inset-bottom));
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(15, 12, 41, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .nav-item {
+      display: grid;
+      position: relative;
+      place-items: center;
+      gap: 4px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 0.72rem;
+      font-weight: 800;
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    .nav-icon {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .nav-item.active {
+      color: #ffffff;
+    }
+
+    .nav-item.active::after {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      content: "";
+    }
+
+    .camera-nav-wrap {
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    .camera-nav {
+      display: grid;
+      width: 64px;
+      height: 64px;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+      transform: translateY(-24px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .camera-nav:hover {
+      transform: translateY(-27px) scale(1.03);
+      box-shadow: 0 0 28px rgba(74, 222, 128, 0.62);
+    }
+
+    .camera-nav svg {
+      width: 28px;
+      height: 28px;
+      stroke: #ffffff;
+    }
+
+    .camera-popup {
+      position: fixed;
+      left: 50%;
+      bottom: calc(88px + env(safe-area-inset-bottom));
+      z-index: 35;
+      width: min(290px, calc(100vw - 32px));
+      overflow: hidden;
+      border-radius: 18px;
+      transform: translateX(-50%) translateY(12px) scale(0.94);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .camera-popup.open {
+      transform: translateX(-50%) translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .camera-option {
+      display: grid;
+      width: 100%;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 15px;
+      background: transparent;
+      text-align: left;
+      transition: background 0.3s ease;
+    }
+
+    .camera-option + .camera-option {
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .camera-option:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .camera-option-icon {
+      font-size: 1.5rem;
+    }
+
+    .camera-option strong,
+    .camera-option span {
+      display: block;
+    }
+
+    .camera-option span {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .recipe-sheet {
+      position: fixed;
+      inset: auto 0 0;
+      z-index: 40;
+      display: grid;
+      place-items: end center;
+      padding: 18px;
+      background: rgba(3, 4, 18, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .recipe-sheet.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet-card {
+      width: min(560px, 100%);
+      max-height: min(78vh, 680px);
+      overflow-y: auto;
+      border-radius: 24px 24px 18px 18px;
+      transform: translateY(28px);
+      transition: transform 0.3s ease;
+    }
+
+    .recipe-sheet.open .sheet-card {
+      transform: translateY(0);
+    }
+
+    .step-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .step-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .step-number {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 800;
+    }
+
+    .step-time {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .feature-sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 45;
+      display: grid;
+      place-items: end center;
+      padding: 18px;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      backdrop-filter: blur(0);
+      -webkit-backdrop-filter: blur(0);
+      transition: opacity 0.3s ease, visibility 0.3s ease, backdrop-filter 0.3s ease;
+    }
+
+    .feature-sheet.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .feature-sheet-card {
+      width: min(560px, 100%);
+      max-height: 85vh;
+      overflow-y: auto;
+      border-radius: 24px 24px 18px 18px;
+      transform: translateY(100%);
+      transition: transform 0.3s ease-out;
+    }
+
+    .feature-sheet.open .feature-sheet-card {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 46px;
+      height: 5px;
+      margin: 0 auto 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .sheet-view {
+      display: none;
+    }
+
+    .sheet-view.active {
+      display: block;
+      animation: sheetContentFade 0.2s ease;
+    }
+
+    @keyframes sheetContentFade {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .feature-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .field-label {
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .feature-input,
+    .rp-field input {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      outline: none;
+      padding: 14px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    .feature-input::placeholder,
+    .rp-field input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .feature-input:focus,
+    .rp-field input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+    }
+
+    .rp-field {
+      position: relative;
+    }
+
+    .rp-field span {
+      position: absolute;
+      top: 50%;
+      left: 14px;
+      color: var(--muted);
+      font-weight: 800;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .rp-field input {
+      padding-left: 45px;
+    }
+
+    .feature-cta {
+      min-height: 52px;
+      margin-top: 4px;
+      border-radius: var(--button-radius);
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      box-shadow: 0 14px 26px rgba(74, 222, 128, 0.25);
+      color: #082312;
+      font-weight: 800;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 34px rgba(74, 222, 128, 0.32);
+    }
+
+    .sheet-back {
+      display: none;
+      margin-right: 4px;
+      background: transparent;
+      color: var(--text);
+      font-size: 1.15rem;
+    }
+
+    .sheet-back.visible {
+      display: inline-grid;
+    }
+
+    .sheet-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .result-hero {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .result-hero h3 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .result-hero p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .budget-bar-wrap {
+      margin: 16px 0;
+    }
+
+    .budget-bar-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .budget-bar {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .budget-bar-fill {
+      width: 0;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      transition: width 0.3s ease;
+    }
+
+    .decision-card {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      text-align: center;
+    }
+
+    .decision-card.green {
+      box-shadow: var(--shadow), 0 0 34px rgba(74, 222, 128, 0.18);
+    }
+
+    .decision-card.yellow {
+      box-shadow: var(--shadow), 0 0 34px rgba(251, 191, 36, 0.18);
+    }
+
+    .decision-card.red {
+      box-shadow: var(--shadow), 0 0 34px rgba(248, 113, 113, 0.2);
+    }
+
+    .decision-card strong {
+      font-size: 1.18rem;
+    }
+
+    .alt-list,
+    .strategy-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .alt-row,
+    .strategy-card,
+    .compare-diff-card {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .alt-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .sheet-section-title {
+      margin: 18px 0 0;
+      font-size: 0.96rem;
+      font-weight: 800;
+    }
+
+    .sheet-note {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .compare-choice {
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-left: 4px solid #60a5fa;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .compare-choice.purple {
+      border-left-color: #a78bfa;
+    }
+
+    .vs-divider {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      justify-self: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .compare-result-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: stretch;
+      margin-top: 18px;
+    }
+
+    .compare-result-card {
+      display: grid;
+      align-content: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      text-align: center;
+    }
+
+    .compare-result-card.winner {
+      border-color: rgba(74, 222, 128, 0.45);
+      box-shadow: var(--shadow), 0 0 30px rgba(74, 222, 128, 0.16);
+    }
+
+    .compare-result-card span {
+      color: var(--muted);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .compare-result-card strong {
+      font-size: 1.05rem;
+    }
+
+    .compare-vs {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .compare-diff-card {
+      margin-top: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .compare-diff-card strong {
+      display: block;
+      margin: 6px 0;
+      font-size: 1.7rem;
+    }
+
+    .compare-diff-card ul {
+      display: grid;
+      gap: 6px;
+      margin: 12px 0 0;
+      padding: 0;
+      color: var(--muted);
+      list-style: none;
+      font-weight: 700;
+    }
+
+    .insight-pill {
+      display: block;
+      margin-top: 14px;
+      padding: 11px 13px;
+      border-radius: 999px;
+      background: rgba(74, 222, 128, 0.12);
+      color: var(--green);
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .survival-summary {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid rgba(248, 113, 113, 0.25);
+      border-radius: 18px;
+      background: rgba(248, 113, 113, 0.08);
+      box-shadow: var(--shadow), 0 0 34px rgba(248, 113, 113, 0.16);
+    }
+
+    .survival-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .survival-row strong {
+      color: var(--text);
+    }
+
+    .strategy-card {
+      display: grid;
+      gap: 6px;
+      padding: 15px;
+      color: var(--text);
+      text-align: left;
+      transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+    }
+
+    .strategy-card:hover,
+    .strategy-card.selected {
+      transform: translateY(-2px);
+      border-color: rgba(74, 222, 128, 0.42);
+      background: rgba(74, 222, 128, 0.08);
+    }
+
+    .strategy-card span {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .strategy-message {
+      display: none;
+      margin-top: 14px;
+      padding: 15px;
+      border: 1px solid rgba(74, 222, 128, 0.22);
+      border-radius: 18px;
+      background: rgba(74, 222, 128, 0.08);
+    }
+
+    .strategy-message.visible {
+      display: block;
+    }
+
+    @media (max-width: 520px) {
+      .compare-result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .compare-vs {
+        min-height: 32px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .app-shell {
+        width: min(100% - 24px, 680px);
+        padding-top: 16px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-subtitle {
+        display: none;
+      }
+
+      .card-pad {
+        padding: 18px;
+      }
+
+      .food-entry {
+        grid-template-columns: auto 1fr;
+      }
+
+      .food-price {
+        grid-column: 2;
+      }
+
+      .chat-panel {
+        border-radius: 0;
+      }
+
+      .page-header,
+      .profile-header {
+        align-items: flex-start;
+      }
+
+      .summary-row {
+        grid-template-columns: 1fr;
+      }
+
+      .history-toggle {
+        top: 88px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .navbar {
+        align-items: flex-start;
+      }
+
+      .ai-button span:last-child {
+        display: none;
+      }
+
+      .meal-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .recipe-card {
+        grid-template-columns: 1fr;
+      }
+
+      .recipe-name {
+        margin-right: 0;
+        padding-right: 112px;
+      }
+
+      .history-entry {
+        grid-template-columns: auto 1fr;
+      }
+
+      .history-value {
+        grid-column: 2;
+      }
+
+      .setting-row {
+        grid-template-columns: 1fr;
+      }
+
+      .setting-value {
+        text-align: left;
+      }
+
+      .quick-actions.single {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-actions {
+        gap: 14px;
+      }
+
+      .quick-action-card {
+        min-height: 112px;
+        padding: 20px 16px;
+      }
+
+      .quick-actions-panel {
+        padding: 22px 18px 40px;
+      }
+
+      .quick-actions-panel .section-header {
+        margin-bottom: 0;
+      }
+
+      .quick-actions-panel .section-header + .quick-actions {
+        margin-top: 28px;
+      }
+
+      .budget-amount {
+        font-size: 2.6rem;
+      }
+
+      .chart-shell {
+        height: 190px;
+      }
+
+      .chat-input-area {
+        grid-template-columns: auto 1fr;
+      }
+
+      .send-button {
+        grid-column: 1 / -1;
+      }
+
+      .modal-overlay {
+        align-items: end;
+        padding: 12px;
+      }
+
+      .modal-card {
+        border-radius: 20px 20px 16px 16px;
+        transform: translateY(36px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <nav class="navbar" aria-label="Navigasi utama">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">🍽️</div>
+        <div>
+          <h1 class="brand-text">Makan Pintar</h1>
+          <span class="brand-subtitle">Budget makan harian yang ngerti kondisi dompet</span>
+        </div>
+      </div>
+      <button class="ai-button glass-pill" id="openChat" type="button" aria-label="Buka chat AI">
+        <span aria-hidden="true">💬</span>
+        <span>AI Chat</span>
+      </button>
+    </nav>
+
+    <main class="dashboard-grid app-page active" id="page-dashboard" data-page="dashboard">
+      <section class="column left-column" aria-label="Ringkasan dan log makan">
+        <article class="glass-card card-pad status-card">
+          <div class="status-top">
+            <span class="mode-badge" id="modeBadge">🟡 Hitung-hitung</span>
+          </div>
+          <p class="eyebrow">Budget hari ini</p>
+          <p class="budget-amount" id="budgetAmount">Rp 35.000</p>
+          <p class="subtitle" id="daysSubtitle">Sisa 12 hari ke kiriman berikutnya</p>
+          <div class="status-bottom">
+            <div>
+              <span class="balance-label">Saldo makan</span>
+              <span class="balance-value" id="saldoDisplay">Rp 420.000</span>
+            </div>
+            <button class="icon-button glass-card" id="editSaldo" type="button" aria-label="Edit saldo makan">✏️</button>
+          </div>
+        </article>
+
+        <article class="glass-card card-pad quick-actions-panel">
+          <div class="section-header">
+            <h2 class="section-title">Log Hari Ini — Senin, 23 Juni</h2>
+            <span class="section-note" id="todayTotal">Rp 15.000</span>
+          </div>
+          <div class="food-list" id="foodList">
+            <div class="food-entry">
+              <div class="food-emoji" aria-hidden="true">🍛</div>
+              <div>
+                <p class="food-name">Nasi Goreng</p>
+                <div class="food-meta">
+                  <span class="meal-badge">Siang</span>
+                  <span>~450 kkal</span>
+                </div>
+              </div>
+              <strong class="food-price">Rp 15.000</strong>
+            </div>
+          </div>
+          <div class="empty-state" id="emptyState">
+            <span aria-hidden="true">📷</span>
+            Belum ada log hari ini
+          </div>
+          <button class="primary-cta" type="button">📷 Foto Makanan</button>
+        </article>
+
+        <article class="glass-card card-pad">
+          <div class="section-header">
+            <h2 class="section-title">Quick Actions</h2>
+            <span class="mode-badge quick-mode-badge" id="modeHint">🟡 Hitung-hitung</span>
+          </div>
+          <div class="quick-actions" id="quickActions" aria-label="Aksi cepat"></div>
+        </article>
+      </section>
+
+      <aside class="column right-column" aria-label="Budget dan riwayat">
+        <article class="glass-card card-pad ring-card">
+          <div class="section-header" style="width: 100%;">
+            <h2 class="section-title">Budget Ring</h2>
+            <span class="section-note" id="spentCopy">Rp 15.000 terpakai</span>
+          </div>
+          <div class="ring-wrap">
+            <svg class="progress-ring" viewBox="0 0 240 240" role="img" aria-labelledby="ringTitle">
+              <title id="ringTitle">Persentase budget hari ini yang sudah terpakai</title>
+              <defs>
+                <linearGradient id="ringGradient" x1="40" y1="40" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+                  <stop id="ringStart" offset="0%" stop-color="#fbbf24"></stop>
+                  <stop id="ringEnd" offset="100%" stop-color="#f59e0b"></stop>
+                </linearGradient>
+              </defs>
+              <circle class="ring-track" cx="120" cy="120" r="100"></circle>
+              <circle class="ring-progress" id="ringProgress" cx="120" cy="120" r="100"></circle>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-percent" id="ringPercent">43%</div>
+              <div class="ring-copy">terpakai</div>
+            </div>
+          </div>
+          <div class="meal-stats">
+            <div class="mini-stat">
+              <span>Makan Pagi</span>
+              <strong>Rp 0</strong>
+            </div>
+            <div class="mini-stat">
+              <span>Makan Siang</span>
+              <strong>Rp 15.000</strong>
+            </div>
+            <div class="mini-stat">
+              <span>Makan Malam</span>
+              <strong>Rp 0</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card card-pad chart-card">
+          <div class="section-header">
+            <h2 class="section-title">History & Chart</h2>
+            <span class="section-note">7 hari terakhir</span>
+          </div>
+          <div class="chart-shell" aria-label="Grafik pengeluaran tujuh hari">
+            <div class="budget-line" id="budgetLine">
+              <span id="budgetLineLabel">Limit Rp 35.000</span>
+            </div>
+            <div class="bar-grid" id="barGrid"></div>
+          </div>
+          <div class="history-list" id="historyList" aria-label="Riwayat makan"></div>
+        </article>
+      </aside>
+    </main>
+
+    <main class="app-page" id="page-riwayat" data-page="riwayat">
+      <header class="page-header">
+        <div>
+          <h2 class="page-title">Riwayat</h2>
+          <span class="page-subtitle">Juni 2025</span>
+        </div>
+      </header>
+
+      <div class="history-toggle" id="historyToggle" data-mode="spending" aria-label="Pilih tampilan riwayat">
+        <button class="toggle-option active" type="button" data-history-mode="spending">💸 Pengeluaran</button>
+        <button class="toggle-option" type="button" data-history-mode="calories">🔥 Kalori</button>
+      </div>
+
+      <section class="history-content">
+        <article class="glass-card card-pad chart-card">
+          <div class="section-header">
+            <h3 class="section-title" id="historyChartTitle">Pengeluaran 7 Hari</h3>
+            <span class="section-note" id="historyChartNote">Limit harian</span>
+          </div>
+          <div class="chart-shell history-chart-shell" id="historyChartShell" aria-label="Grafik riwayat tujuh hari">
+            <div class="chart-axis" id="historyYAxis" aria-hidden="true"></div>
+            <div class="budget-line" id="historyTargetLine">
+              <span id="historyTargetLabel">Limit Rp 35.000</span>
+            </div>
+            <div class="bar-grid" id="historyBarGrid"></div>
+          </div>
+        </article>
+
+        <div class="summary-row" id="historySummary"></div>
+
+        <article class="glass-card card-pad">
+          <div class="section-header">
+            <h3 class="section-title">Daftar Log</h3>
+            <span class="section-note" id="historyListMode">Pengeluaran</span>
+          </div>
+          <div class="history-page-list" id="historyPageList"></div>
+        </article>
+      </section>
+    </main>
+
+    <main class="app-page" id="page-resep" data-page="resep">
+      <header class="page-header">
+        <div>
+          <h2 class="page-title">Resep Survival</h2>
+          <span class="page-subtitle">AI generate based on your budget</span>
+        </div>
+      </header>
+
+      <article class="glass-card card-pad recipe-context">
+        <p>Budget kamu <strong>Rp 14.000/hari</strong> — ini resep yang cocok:</p>
+      </article>
+
+      <div class="filter-row" aria-label="Filter resep">
+        <button class="filter-pill active" type="button">Semua</button>
+        <button class="filter-pill" type="button">&lt; Rp 10rb</button>
+        <button class="filter-pill" type="button">&lt; Rp 20rb</button>
+        <button class="filter-pill" type="button">&lt; Rp 30rb</button>
+        <button class="filter-pill" type="button">Telur</button>
+        <button class="filter-pill" type="button">Nasi</button>
+        <button class="filter-pill" type="button">Indomie</button>
+      </div>
+
+      <section class="recipe-list" id="recipeList" aria-label="Daftar resep survival"></section>
+    </main>
+
+    <main class="app-page" id="page-profil" data-page="profil">
+      <header class="profile-header">
+        <div class="avatar" aria-hidden="true">MK</div>
+        <div>
+          <h2 class="page-title">Makan Pintar User</h2>
+          <span class="page-subtitle">Mahasiswa · Mode Hitung-hitung 🟡</span>
+        </div>
+      </header>
+
+      <section class="settings-stack" aria-label="Pengaturan profil">
+        <article class="glass-card card-pad settings-card">
+          <h3>💰 Budget & Kiriman</h3>
+          <div class="setting-row" data-editable>
+            <span class="setting-label">Total Kiriman</span>
+            <div class="setting-value"><span>Rp 1.500.000</span><button class="edit-setting" type="button">Edit →</button></div>
+          </div>
+          <div class="setting-row" data-editable>
+            <span class="setting-label">Tanggal Kiriman Berikutnya</span>
+            <div class="setting-value"><span>30 Juni</span><button class="edit-setting" type="button">Edit →</button></div>
+          </div>
+          <div class="setting-row" data-editable>
+            <span class="setting-label">Saldo Makan Saat Ini</span>
+            <div class="setting-value"><span>Rp 420.000</span><button class="edit-setting" type="button">Edit →</button></div>
+          </div>
+        </article>
+
+        <article class="glass-card card-pad settings-card">
+          <h3>🥗 Target Nutrisi</h3>
+          <div class="setting-row" data-editable>
+            <span class="setting-label">Target Kalori/hari</span>
+            <div class="setting-value"><span>2.000 kkal</span><button class="edit-setting" type="button">Edit →</button></div>
+          </div>
+          <div class="setting-row" data-editable>
+            <span class="setting-label">Target Protein/hari</span>
+            <div class="setting-value"><span>60g</span><button class="edit-setting" type="button">Edit →</button></div>
+          </div>
+        </article>
+
+        <article class="glass-card card-pad settings-card">
+          <h3>🔔 Notifikasi</h3>
+          <div class="setting-row">
+            <span class="setting-label">Budget Warning</span>
+            <button class="switch on" type="button" aria-label="Toggle Budget Warning"></button>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Log Reminder</span>
+            <button class="switch on" type="button" aria-label="Toggle Log Reminder"></button>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Kiriman Reminder</span>
+            <button class="switch" type="button" aria-label="Toggle Kiriman Reminder"></button>
+          </div>
+        </article>
+
+        <article class="glass-card card-pad settings-card">
+          <h3>📱 Tentang Aplikasi</h3>
+          <div class="setting-row">
+            <span class="setting-label">Versi</span>
+            <span class="setting-value">0.1.0 Beta</span>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Feedback</span>
+            <button class="edit-setting" type="button">Kirim →</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div class="camera-popup glass-card" id="cameraPopup" aria-hidden="true">
+    <button class="camera-option" type="button">
+      <span class="camera-option-icon" aria-hidden="true">🍛</span>
+      <span><strong>Scan Makanan</strong><span>Deteksi nutrisi & kkal</span></span>
+    </button>
+    <button class="camera-option" type="button">
+      <span class="camera-option-icon" aria-hidden="true">🧾</span>
+      <span><strong>Scan Struk</strong><span>Update budget otomatis</span></span>
+    </button>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navigasi bawah">
+    <button class="nav-item active" type="button" data-target-page="dashboard">
+      <span class="nav-icon" aria-hidden="true">🏠</span>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" type="button" data-target-page="riwayat">
+      <span class="nav-icon" aria-hidden="true">📊</span>
+      <span>Riwayat</span>
+    </button>
+    <div class="camera-nav-wrap">
+      <button class="camera-nav" id="cameraNav" type="button" aria-label="Buka menu kamera">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 8.5C4 7.12 5.12 6 6.5 6h1.84c.42 0 .81-.21 1.04-.55l.74-1.1c.23-.34.62-.55 1.04-.55h1.7c.42 0 .81.21 1.04.55l.74 1.1c.23.34.62.55 1.04.55h1.78C18.88 6 20 7.12 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8Z" stroke-width="2" stroke-linejoin="round"></path>
+          <path d="M12 15.75a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Z" stroke-width="2"></path>
+        </svg>
+      </button>
+    </div>
+    <button class="nav-item" type="button" data-target-page="resep">
+      <span class="nav-icon" aria-hidden="true">🍳</span>
+      <span>Resep</span>
+    </button>
+    <button class="nav-item" type="button" data-target-page="profil">
+      <span class="nav-icon" aria-hidden="true">👤</span>
+      <span>Profil</span>
+    </button>
+  </nav>
+
+  <div class="overlay" id="chatOverlay"></div>
+  <aside class="chat-panel" id="chatPanel" aria-label="Panel chat AI" aria-hidden="true">
+    <header class="chat-header">
+      <h2 class="chat-title">💬 Ngobrol sama AI</h2>
+      <button class="icon-button" id="closeChat" type="button" aria-label="Tutup chat">✕</button>
+    </header>
+    <div class="chat-messages" id="chatMessages">
+      <div class="message user">worth it gak beli ayam geprek 25rb?</div>
+      <div class="message ai">Budget kamu hari ini Rp 35.000. Kalau beli itu sisa Rp 10.000 buat makan berikutnya. Mau gue cariin alternatif yang lebih murah?</div>
+      <div class="message user">cariin dong</div>
+    </div>
+    <form class="chat-input-area" id="chatForm">
+      <button class="icon-button" type="button" aria-label="Kirim foto makanan">📷</button>
+      <input class="chat-input" id="chatInput" type="text" placeholder="Tulis pesan..." autocomplete="off">
+      <button class="send-button" type="submit">Kirim</button>
+    </form>
+  </aside>
+
+  <div class="modal-overlay" id="saldoModal" aria-hidden="true">
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Update saldo makan</h2>
+        <button class="icon-button" id="closeModal" type="button" aria-label="Tutup modal">✕</button>
+      </div>
+      <div class="current-balance">
+        <span>Saldo sekarang</span>
+        <strong id="modalSaldo">Rp 420.000</strong>
+      </div>
+      <label class="input-label" for="newSaldo">Saldo baru</label>
+      <input class="saldo-input" id="newSaldo" type="number" min="0" step="1000" inputmode="numeric" placeholder="Contoh: 420000">
+      <button class="save-button" id="saveSaldo" type="button">Simpan saldo</button>
+    </section>
+  </div>
+
+  <div class="recipe-sheet" id="recipeSheet" aria-hidden="true">
+    <section class="sheet-card glass-card card-pad" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="sheetTitle">Cara Masak</h2>
+        <button class="icon-button" id="closeRecipeSheet" type="button" aria-label="Tutup detail resep">✕</button>
+      </div>
+      <ol class="step-list" id="recipeSteps"></ol>
+    </section>
+  </div>
+
+  <div class="feature-sheet" id="worthSheet" aria-hidden="true">
+    <section class="feature-sheet-card glass-card card-pad" role="dialog" aria-modal="true" aria-labelledby="worthTitle">
+      <div class="sheet-handle"></div>
+      <div class="modal-header">
+        <div class="sheet-title-wrap">
+          <button class="sheet-back" id="worthBack" type="button" aria-label="Kembali">←</button>
+          <h2 class="modal-title" id="worthTitle">🤔 Worth It Checker</h2>
+        </div>
+        <button class="icon-button" id="closeWorthSheet" type="button" aria-label="Tutup Worth It Checker">×</button>
+      </div>
+      <div class="sheet-view active" id="worthInputView">
+        <form class="feature-form" id="worthForm">
+          <label class="field-label" for="worthFood">Mau beli apa?</label>
+          <input class="feature-input" id="worthFood" type="text" placeholder="Contoh: Ayam Geprek" autocomplete="off">
+          <label class="field-label" for="worthPrice">Harganya berapa?</label>
+          <div class="rp-field">
+            <span>Rp</span>
+            <input id="worthPrice" type="number" min="0" step="500" placeholder="25.000" inputmode="numeric">
+          </div>
+          <button class="feature-cta" type="submit">Cek Sekarang →</button>
+        </form>
+      </div>
+      <div class="sheet-view" id="worthResultView">
+        <div id="worthResult"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="feature-sheet" id="compareSheet" aria-hidden="true">
+    <section class="feature-sheet-card glass-card card-pad" role="dialog" aria-modal="true" aria-labelledby="compareTitle">
+      <div class="sheet-handle"></div>
+      <div class="modal-header">
+        <div class="sheet-title-wrap">
+          <button class="sheet-back" id="compareBack" type="button" aria-label="Kembali">←</button>
+          <h2 class="modal-title" id="compareTitle">⚖️ Bandingkan Dua Pilihan</h2>
+        </div>
+        <button class="icon-button" id="closeCompareSheet" type="button" aria-label="Tutup Compare">×</button>
+      </div>
+      <div class="sheet-view active" id="compareInputView">
+        <form class="feature-form" id="compareForm">
+          <div class="compare-choice">
+            <label class="field-label" for="compareAName">Pilihan A</label>
+            <input class="feature-input" id="compareAName" type="text" placeholder="Nama makanan/tempat" autocomplete="off">
+            <div class="rp-field" style="margin-top: 10px;">
+              <span>Rp</span>
+              <input id="compareAPrice" type="number" min="0" step="500" placeholder="20.000" inputmode="numeric">
+            </div>
+          </div>
+          <div class="vs-divider">VS</div>
+          <div class="compare-choice purple">
+            <label class="field-label" for="compareBName">Pilihan B</label>
+            <input class="feature-input" id="compareBName" type="text" placeholder="Nama makanan/tempat" autocomplete="off">
+            <div class="rp-field" style="margin-top: 10px;">
+              <span>Rp</span>
+              <input id="compareBPrice" type="number" min="0" step="500" placeholder="15.000" inputmode="numeric">
+            </div>
+          </div>
+          <button class="feature-cta" type="submit">Bandingkan →</button>
+        </form>
+      </div>
+      <div class="sheet-view" id="compareResultView">
+        <div id="compareResult"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="feature-sheet" id="survivalSheet" aria-hidden="true">
+    <section class="feature-sheet-card glass-card card-pad" role="dialog" aria-modal="true" aria-labelledby="survivalTitle">
+      <div class="sheet-handle"></div>
+      <div class="modal-header">
+        <h2 class="modal-title" id="survivalTitle">🔴 Survival Planner</h2>
+        <button class="icon-button" id="closeSurvivalSheet" type="button" aria-label="Tutup Survival Planner">×</button>
+      </div>
+      <div class="survival-summary">
+        <div class="survival-row"><span>Sisa uang</span><strong>Rp 85.000</strong></div>
+        <div class="survival-row"><span>Sisa hari</span><strong>6 hari</strong></div>
+        <div class="survival-row"><span>Budget/hari</span><strong>Rp 14.166</strong></div>
+      </div>
+      <div class="result-hero">
+        <h3>Dengan pola makan sekarang...</h3>
+        <div class="budget-bar-wrap">
+          <div class="budget-bar-label"><span>Hari tercakup</span><span>4 dari 6 hari</span></div>
+          <div class="budget-bar"><div class="budget-bar-fill" style="width: 66%;"></div></div>
+        </div>
+        <p>Cukup sampai 4 hari — kurang 2 hari</p>
+      </div>
+      <p class="sheet-section-title">Pilih strategi:</p>
+      <div class="strategy-list">
+        <button class="strategy-card" type="button" data-strategy="outside">
+          <strong>🛒 Tetap beli di luar</strong>
+          <span>Estimasi cukup 4 hari</span>
+        </button>
+        <button class="strategy-card" type="button" data-strategy="cook">
+          <strong>🍳 Mulai masak sendiri</strong>
+          <span>Estimasi hemat Rp 10.000/hari<br>Cukup sampai kiriman ✅</span>
+        </button>
+      </div>
+      <div class="strategy-message" id="strategyMessage">
+        <p>Yuk ke halaman Resep buat liat pilihan masak murah!</p>
+        <button class="feature-cta" id="goRecipeFromSurvival" type="button">Lihat Resep →</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      saldoMakan: 420000,
+      hariKeKiriman: 12,
+      todaySpent: 15000,
+      maxChartSpend: 80000,
+      history: [
+        { day: "Sel", date: "17 Juni", food: "Bubur Ayam", amount: 25000 },
+        { day: "Rab", date: "18 Juni", food: "Soto Ayam", amount: 38000 },
+        { day: "Kam", date: "19 Juni", food: "Ayam Geprek", amount: 52000 },
+        { day: "Jum", date: "20 Juni", food: "Mie Ayam", amount: 30000 },
+        { day: "Sab", date: "21 Juni", food: "Padang Hemat", amount: 75000 },
+        { day: "Min", date: "22 Juni", food: "Ketoprak", amount: 28000 },
+        { day: "Sen", date: "23 Juni", food: "Nasi Goreng", amount: 15000 }
+      ]
+    };
+
+    const historyEntries = [
+      { date: "Senin 23 Jun", emoji: "🍛", name: "Nasi Goreng", meal: "Siang", price: 15000, calories: 450 },
+      { date: "Minggu 22 Jun", emoji: "🍜", name: "Indomie", meal: "Malam", price: 4000, calories: 380 },
+      { date: "Minggu 22 Jun", emoji: "🍱", name: "Warteg", meal: "Siang", price: 20000, calories: 550 },
+      { date: "Sabtu 21 Jun", emoji: "🍗", name: "Ayam Geprek", meal: "Siang", price: 25000, calories: 620 },
+      { date: "Jumat 20 Jun", emoji: "🍛", name: "Nasi Padang", meal: "Siang", price: 22000, calories: 680 },
+      { date: "Jumat 20 Jun", emoji: "🥟", name: "Gorengan", meal: "Sore", price: 5000, calories: 210 },
+      { date: "Kamis 19 Jun", emoji: "🍜", name: "Mie Ayam", meal: "Siang", price: 15000, calories: 480 },
+      { date: "Kamis 19 Jun", emoji: "🍛", name: "Nasi Goreng", meal: "Malam", price: 15000, calories: 450 }
+    ];
+
+    const weeklySpending = [
+      { day: "Sen", amount: 15000 },
+      { day: "Sel", amount: 35000 },
+      { day: "Rab", amount: 38000 },
+      { day: "Kam", amount: 30000 },
+      { day: "Jum", amount: 27000 },
+      { day: "Sab", amount: 75000 },
+      { day: "Min", amount: 24000 }
+    ];
+
+    const weeklyCalories = [
+      { day: "Sen", amount: 1650 },
+      { day: "Sel", amount: 1780 },
+      { day: "Rab", amount: 2000 },
+      { day: "Kam", amount: 930 },
+      { day: "Jum", amount: 2100 },
+      { day: "Sab", amount: 2020 },
+      { day: "Min", amount: 1280 }
+    ];
+
+    const recipes = [
+      {
+        emoji: "🥚",
+        name: "Telur Kecap + Nasi",
+        meta: "Rp 5.000 | 10 menit | ~400 kkal",
+        ingredients: ["Telur", "Nasi", "Kecap", "Bawang"],
+        steps: [
+          ["Panaskan sedikit minyak, tumis bawang sampai harum.", "2 menit"],
+          ["Masukkan telur, orak-arik atau ceplok sesuai selera.", "3 menit"],
+          ["Tambahkan kecap dan sedikit air, aduk sampai meresap.", "3 menit"],
+          ["Sajikan dengan nasi hangat.", "2 menit"]
+        ]
+      },
+      {
+        emoji: "🍜",
+        name: "Indomie Telur Rebus",
+        meta: "Rp 4.500 | 7 menit | ~380 kkal",
+        ingredients: ["Indomie", "Telur", "Sayur"],
+        steps: [
+          ["Rebus air sampai mendidih.", "2 menit"],
+          ["Masukkan mie dan telur, masak sampai matang.", "4 menit"],
+          ["Campur bumbu, tambahkan sayur jika ada.", "1 menit"]
+        ]
+      },
+      {
+        emoji: "🍳",
+        name: "Nasi + Tempe Goreng",
+        meta: "Rp 6.000 | 15 menit | ~450 kkal",
+        ingredients: ["Nasi", "Tempe", "Minyak", "Garam"],
+        steps: [
+          ["Iris tempe tipis lalu beri garam secukupnya.", "3 menit"],
+          ["Panaskan minyak dan goreng tempe hingga kecokelatan.", "9 menit"],
+          ["Tiriskan lalu sajikan bersama nasi.", "3 menit"]
+        ]
+      },
+      {
+        emoji: "🥣",
+        name: "Bubur Indomie",
+        meta: "Rp 3.500 | 8 menit | ~320 kkal",
+        ingredients: ["Indomie", "Air", "Telur"],
+        steps: [
+          ["Remukkan mie lalu rebus dengan air agak banyak.", "4 menit"],
+          ["Aduk sampai teksturnya lembut seperti bubur.", "2 menit"],
+          ["Masukkan telur dan bumbu, aduk sampai matang.", "2 menit"]
+        ]
+      }
+    ];
+
+    const modeConfig = {
+      santai: {
+        label: "Santai",
+        emoji: "🟢",
+        color: "#4ade80",
+        deep: "#22c55e",
+        glow: "rgba(74, 222, 128, 0.1)",
+        actions: ["🤔 Worth It?"]
+      },
+      hitung: {
+        label: "Hitung-hitung",
+        emoji: "🟡",
+        color: "#fbbf24",
+        deep: "#f59e0b",
+        glow: "rgba(251, 191, 36, 0.1)",
+        actions: ["🤔 Worth It?", "⚖️ Compare"]
+      },
+      survival: {
+        label: "Survival",
+        emoji: "🔴",
+        color: "#f87171",
+        deep: "#ef4444",
+        glow: "rgba(248, 113, 113, 0.1)",
+        actions: ["🍳 Survival Planner", "📖 Resep Murah"]
+      }
+    };
+
+    const root = document.documentElement;
+    const saldoDisplay = document.getElementById("saldoDisplay");
+    const budgetAmount = document.getElementById("budgetAmount");
+    const daysSubtitle = document.getElementById("daysSubtitle");
+    const modeBadge = document.getElementById("modeBadge");
+    const modeHint = document.getElementById("modeHint");
+    const quickActions = document.getElementById("quickActions");
+    const ringProgress = document.getElementById("ringProgress");
+    const ringStart = document.getElementById("ringStart");
+    const ringEnd = document.getElementById("ringEnd");
+    const ringPercent = document.getElementById("ringPercent");
+    const spentCopy = document.getElementById("spentCopy");
+    const budgetLineLabel = document.getElementById("budgetLineLabel");
+    const barGrid = document.getElementById("barGrid");
+    const historyList = document.getElementById("historyList");
+    const saldoModal = document.getElementById("saldoModal");
+    const modalSaldo = document.getElementById("modalSaldo");
+    const newSaldo = document.getElementById("newSaldo");
+    const chatPanel = document.getElementById("chatPanel");
+    const chatOverlay = document.getElementById("chatOverlay");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatForm = document.getElementById("chatForm");
+    const chatInput = document.getElementById("chatInput");
+    const pages = document.querySelectorAll(".app-page");
+    const navItems = document.querySelectorAll(".nav-item[data-target-page]");
+    const cameraNav = document.getElementById("cameraNav");
+    const cameraPopup = document.getElementById("cameraPopup");
+    const historyToggle = document.getElementById("historyToggle");
+    const historyBarGrid = document.getElementById("historyBarGrid");
+    const historyTargetLine = document.getElementById("historyTargetLine");
+    const historyTargetLabel = document.getElementById("historyTargetLabel");
+    const historyChartTitle = document.getElementById("historyChartTitle");
+    const historyYAxis = document.getElementById("historyYAxis");
+    const historyListMode = document.getElementById("historyListMode");
+    const historySummary = document.getElementById("historySummary");
+    const historyPageList = document.getElementById("historyPageList");
+    const recipeList = document.getElementById("recipeList");
+    const recipeSheet = document.getElementById("recipeSheet");
+    const sheetTitle = document.getElementById("sheetTitle");
+    const recipeSteps = document.getElementById("recipeSteps");
+    const closeRecipeSheetButton = document.getElementById("closeRecipeSheet");
+    const worthSheet = document.getElementById("worthSheet");
+    const worthBack = document.getElementById("worthBack");
+    const worthInputView = document.getElementById("worthInputView");
+    const worthResultView = document.getElementById("worthResultView");
+    const worthResult = document.getElementById("worthResult");
+    const worthForm = document.getElementById("worthForm");
+    const worthFood = document.getElementById("worthFood");
+    const worthPrice = document.getElementById("worthPrice");
+    const compareSheet = document.getElementById("compareSheet");
+    const compareBack = document.getElementById("compareBack");
+    const compareInputView = document.getElementById("compareInputView");
+    const compareResultView = document.getElementById("compareResultView");
+    const compareResult = document.getElementById("compareResult");
+    const compareForm = document.getElementById("compareForm");
+    const compareAName = document.getElementById("compareAName");
+    const compareAPrice = document.getElementById("compareAPrice");
+    const compareBName = document.getElementById("compareBName");
+    const compareBPrice = document.getElementById("compareBPrice");
+    const survivalSheet = document.getElementById("survivalSheet");
+    const strategyMessage = document.getElementById("strategyMessage");
+    const goRecipeFromSurvival = document.getElementById("goRecipeFromSurvival");
+    let activePage = "dashboard";
+    let activeHistoryMode = "spending";
+
+    function formatRupiah(value) {
+      return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0
+      }).format(value).replace(/\s/g, " ");
+    }
+
+    function getDailyBudget() {
+      return Math.round(state.saldoMakan / state.hariKeKiriman);
+    }
+
+    function getMode(budgetHarian) {
+      if (budgetHarian > 50000) return modeConfig.santai;
+      if (budgetHarian < 20000) return modeConfig.survival;
+      return modeConfig.hitung;
+    }
+
+    function renderQuickActions(mode) {
+      quickActions.innerHTML = "";
+      const actions = getQuickActionCards(mode);
+      quickActions.classList.toggle("single", actions.length === 1);
+
+      actions.forEach((action) => {
+        const button = document.createElement("button");
+        button.className = "quick-action-card";
+        button.type = "button";
+        button.dataset.quickAction = action.id;
+        button.innerHTML = `
+          <span class="quick-action-icon" aria-hidden="true">${action.icon}</span>
+          <span class="quick-action-title">${action.title}</span>
+          <span class="quick-action-desc">${action.description}</span>
+        `;
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          handleQuickAction(action.id);
+        });
+        quickActions.appendChild(button);
+      });
+    }
+
+    function handleQuickAction(action) {
+      if (action === "worth") openWorthSheet();
+      if (action === "compare") openCompareSheet();
+      if (action === "survival") openSurvivalSheet();
+      if (action === "cheapRecipes") switchPage("resep");
+    }
+
+    function getQuickActionCards(mode) {
+      if (mode.label === "Santai") {
+        return [
+          { id: "worth", icon: "🤔", title: "Worth It?", description: "Cek apakah worth dibeli" }
+        ];
+      }
+
+      if (mode.label === "Survival") {
+        return [
+          { id: "survival", icon: "🍳", title: "Survival Planner", description: "Atur makan sampai kiriman" },
+          { id: "cheapRecipes", icon: "📖", title: "Resep Murah", description: "Masak sendiri, hemat lebih" }
+        ];
+      }
+
+      return [
+        { id: "worth", icon: "🤔", title: "Worth It?", description: "Cek apakah worth dibeli" },
+        { id: "compare", icon: "⚖️", title: "Compare", description: "Bandingin dua pilihan" }
+      ];
+    }
+
+    function renderChart(budgetHarian) {
+      const budgetRatio = Math.min((budgetHarian / state.maxChartSpend) * 100, 100);
+      root.style.setProperty("--budget-ratio", `${budgetRatio}%`);
+      budgetLineLabel.textContent = `Limit ${formatRupiah(budgetHarian)}`;
+      barGrid.innerHTML = "";
+
+      state.history.forEach((item) => {
+        const barItem = document.createElement("div");
+        barItem.className = "bar-item";
+        const track = document.createElement("div");
+        track.className = "bar-track";
+        const fill = document.createElement("div");
+        fill.className = `bar-fill${item.amount > budgetHarian ? " over" : ""}`;
+        fill.dataset.height = `${Math.min((item.amount / state.maxChartSpend) * 100, 100)}%`;
+        track.appendChild(fill);
+        const label = document.createElement("span");
+        label.className = "bar-label";
+        label.textContent = item.day;
+        barItem.append(track, label);
+        barGrid.appendChild(barItem);
+      });
+
+      animateBars(document.getElementById("page-dashboard"));
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = "";
+
+      state.history.slice().reverse().forEach((item) => {
+        const date = document.createElement("div");
+        date.className = "history-date";
+        date.textContent = item.date;
+
+        const row = document.createElement("div");
+        row.className = "history-row";
+        row.innerHTML = `<span>${item.food}</span><strong>${formatRupiah(item.amount)}</strong>`;
+
+        historyList.append(date, row);
+      });
+    }
+
+    function animateBars(scope = document) {
+      requestAnimationFrame(() => {
+        scope.querySelectorAll(".bar-fill").forEach((bar) => {
+          bar.style.height = bar.dataset.height;
+        });
+      });
+    }
+
+    function renderHistoryChart(mode) {
+      const budgetHarian = getDailyBudget();
+      const isCalories = mode === "calories";
+      const data = isCalories ? weeklyCalories : weeklySpending;
+      const maxValue = isCalories ? 2400 : state.maxChartSpend;
+      const target = isCalories ? 2000 : budgetHarian;
+      const targetRatio = Math.min((target / maxValue) * 100, 100);
+
+      historyChartTitle.textContent = isCalories ? "Kalori 7 Hari" : "Pengeluaran 7 Hari";
+      historyTargetLabel.textContent = isCalories ? "Target 2.000 kkal" : `Limit ${formatRupiah(budgetHarian)}`;
+      historyYAxis.innerHTML = isCalories
+        ? "<span>2.400</span><span>1.200</span><span>0</span>"
+        : "<span>80rb</span><span>40rb</span><span>0</span>";
+      historyTargetLine.style.bottom = `calc(30px + ${targetRatio}%)`;
+      historyTargetLine.style.borderTopColor = isCalories ? "rgba(74, 222, 128, 0.9)" : "rgba(255, 255, 255, 0.85)";
+      historyBarGrid.innerHTML = "";
+
+      data.forEach((item) => {
+        const barItem = document.createElement("div");
+        barItem.className = "bar-item";
+        const track = document.createElement("div");
+        track.className = "bar-track";
+        const fill = document.createElement("div");
+
+        if (isCalories) {
+          const calorieClass = item.amount > 2200 ? " over" : item.amount < 2000 ? " below" : "";
+          fill.className = `bar-fill${calorieClass}`;
+        } else {
+          fill.className = `bar-fill${item.amount > budgetHarian ? " over" : ""}`;
+        }
+
+        fill.dataset.height = `${Math.min((item.amount / maxValue) * 100, 100)}%`;
+        track.appendChild(fill);
+
+        const label = document.createElement("span");
+        label.className = "bar-label";
+        label.textContent = item.day;
+        barItem.append(track, label);
+        historyBarGrid.appendChild(barItem);
+      });
+
+      animateBars(document.getElementById("page-riwayat"));
+    }
+
+    function renderHistorySummary(mode) {
+      const stats = mode === "calories"
+        ? [
+            ["Rata-rata/Hari", "1.680 kkal"],
+            ["Hari Tercukupi", "4 dari 7"],
+            ["Tertinggi", "2.100 kkal"]
+          ]
+        : [
+            ["Total Minggu Ini", "Rp 245.000"],
+            ["Rata-rata/Hari", "Rp 35.000"],
+            ["Terboros", "Rp 75.000"]
+          ];
+
+      historySummary.innerHTML = stats.map(([label, value]) => `
+        <article class="summary-card">
+          <span>${label}</span>
+          <strong>${value}</strong>
+        </article>
+      `).join("");
+    }
+
+    function renderHistoryPageList(mode) {
+      historyPageList.innerHTML = "";
+      historyListMode.textContent = mode === "calories" ? "Kalori" : "Pengeluaran";
+
+      let currentDate = "";
+      historyEntries.forEach((entry) => {
+        if (entry.date !== currentDate) {
+          currentDate = entry.date;
+          const separator = document.createElement("div");
+          separator.className = "history-date";
+          separator.textContent = currentDate;
+          historyPageList.appendChild(separator);
+        }
+
+        const row = document.createElement("div");
+        row.className = "history-entry";
+        const value = mode === "calories" ? `${entry.calories} kkal` : formatRupiah(entry.price);
+        row.innerHTML = `
+          <div class="food-emoji" aria-hidden="true">${entry.emoji}</div>
+          <div>
+            <p class="food-name">${entry.name}</p>
+            <div class="food-meta">
+              <span class="meal-badge">${entry.meal}</span>
+            </div>
+          </div>
+          <strong class="history-value">${value}</strong>
+        `;
+        historyPageList.appendChild(row);
+      });
+    }
+
+    function renderHistoryPage(mode = activeHistoryMode) {
+      activeHistoryMode = mode;
+      historyToggle.dataset.mode = mode === "calories" ? "calories" : "spending";
+      document.querySelectorAll("[data-history-mode]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.historyMode === mode);
+      });
+      renderHistoryChart(mode);
+      renderHistorySummary(mode);
+      renderHistoryPageList(mode);
+    }
+
+    function renderRecipes() {
+      recipeList.innerHTML = "";
+
+      recipes.forEach((recipe, index) => {
+        const card = document.createElement("article");
+        card.className = "glass-card recipe-card";
+        card.innerHTML = `
+          <div class="recipe-emoji" aria-hidden="true">${recipe.emoji}</div>
+          <div>
+            <h3 class="recipe-name">${recipe.name}</h3>
+            <div class="recipe-meta">${recipe.meta}</div>
+            <div class="ingredient-chips">
+              ${recipe.ingredients.map((item) => `<span class="chip">${item}</span>`).join("")}
+            </div>
+          </div>
+          <span class="ai-badge">✨ AI Generated</span>
+          <button class="recipe-action" type="button" data-recipe-index="${index}">Lihat Cara Masak</button>
+        `;
+        recipeList.appendChild(card);
+      });
+    }
+
+    function openRecipeSheet(recipe) {
+      sheetTitle.textContent = recipe.name;
+      recipeSteps.innerHTML = recipe.steps.map(([text, time], index) => `
+        <li class="step-row">
+          <span class="step-number">${index + 1}</span>
+          <span>${text}</span>
+          <span class="step-time">${time}</span>
+        </li>
+      `).join("");
+      recipeSheet.classList.add("open");
+      recipeSheet.setAttribute("aria-hidden", "false");
+    }
+
+    function closeRecipeSheet() {
+      recipeSheet.classList.remove("open");
+      recipeSheet.setAttribute("aria-hidden", "true");
+    }
+
+    function openFeatureSheet(sheet) {
+      sheet.classList.add("open");
+      sheet.setAttribute("aria-hidden", "false");
+    }
+
+    function closeFeatureSheet(sheet) {
+      sheet.classList.remove("open");
+      sheet.setAttribute("aria-hidden", "true");
+    }
+
+    function showSheetView(inputView, resultView, backButton, showResult) {
+      inputView.classList.toggle("active", !showResult);
+      resultView.classList.toggle("active", showResult);
+      backButton.classList.toggle("visible", showResult);
+    }
+
+    function parsePriceInput(input) {
+      return Number(String(input.value).replace(/[^\d]/g, ""));
+    }
+
+    function openWorthSheet() {
+      worthFood.value = "";
+      worthPrice.value = "";
+      worthResult.innerHTML = "";
+      showSheetView(worthInputView, worthResultView, worthBack, false);
+      openFeatureSheet(worthSheet);
+      setTimeout(() => worthFood.focus(), 180);
+    }
+
+    function closeWorthSheet() {
+      closeFeatureSheet(worthSheet);
+    }
+
+    function showWorthResult(foodName, foodPrice) {
+      const budgetHarian = getDailyBudget();
+      const afterSpent = state.todaySpent + foodPrice;
+      const remaining = budgetHarian - afterSpent;
+      const percent = Math.min(Math.max((afterSpent / budgetHarian) * 100, 0), 100);
+      let status = { className: "red", icon: "🔴", text: "Mepet banget" };
+
+      if (remaining > 15000) {
+        status = { className: "green", icon: "✅", text: "Masih aman" };
+      } else if (remaining >= 5000) {
+        status = { className: "yellow", icon: "⚠️", text: "Agak mepet" };
+      }
+
+      worthResult.innerHTML = `
+        <div class="result-hero">
+          <h3>${foodName}</h3>
+          <p>${formatRupiah(foodPrice)}</p>
+          <div class="budget-bar-wrap">
+            <div class="budget-bar-label">
+              <span>Budget hari ini: ${formatRupiah(budgetHarian)}</span>
+              <span>${Math.round(percent)}%</span>
+            </div>
+            <div class="budget-bar"><div class="budget-bar-fill" style="width: ${percent}%;"></div></div>
+          </div>
+          <p>Kalau beli ini, sisa ${formatRupiah(remaining)}</p>
+        </div>
+        <div class="decision-card ${status.className}">
+          <strong>${status.icon} ${status.text}</strong>
+        </div>
+        <p class="sheet-section-title">Alternatif sekitar harga segitu:</p>
+        <div class="alt-list">
+          <div class="alt-row"><span>Warteg</span><strong>~Rp 15.000</strong></div>
+          <div class="alt-row"><span>Masak sendiri</span><strong>~Rp 5.000</strong></div>
+          <div class="alt-row"><span>GoFood promo</span><strong>~Rp 20.000</strong></div>
+        </div>
+        <p class="sheet-note">Keputusan tetap di tangan kamu 👍</p>
+      `;
+      showSheetView(worthInputView, worthResultView, worthBack, true);
+    }
+
+    function openCompareSheet() {
+      compareAName.value = "";
+      compareAPrice.value = "";
+      compareBName.value = "";
+      compareBPrice.value = "";
+      compareResult.innerHTML = "";
+      showSheetView(compareInputView, compareResultView, compareBack, false);
+      openFeatureSheet(compareSheet);
+      setTimeout(() => compareAName.focus(), 180);
+    }
+
+    function closeCompareSheet() {
+      closeFeatureSheet(compareSheet);
+    }
+
+    function showCompareResult(nameA, priceA, nameB, priceB) {
+      const budgetHarian = getDailyBudget();
+      const diff = Math.abs(priceA - priceB);
+      const winner = priceA <= priceB ? "A" : "B";
+      const winnerName = winner === "A" ? nameA : nameB;
+      const higherPrice = Math.max(priceA, priceB) || 1;
+      const diffPercent = Math.round((diff / higherPrice) * 100);
+      const gorengan = Math.max(1, Math.floor(diff / 2000));
+      const daysSaved = diff / budgetHarian;
+      const insight = diffPercent > 30
+        ? `💡 ${winnerName} lebih hemat ${diffPercent}%`
+        : diffPercent < 15
+          ? "💡 Hampir sama, pilih yang kamu suka aja"
+          : `💡 ${winnerName} lumayan lebih hemat`;
+
+      compareResult.innerHTML = `
+        <div class="compare-result-grid">
+          <div class="compare-result-card ${winner === "A" ? "winner" : ""}">
+            <span>${nameA}</span>
+            <strong>${formatRupiah(priceA)}</strong>
+          </div>
+          <div class="compare-vs">VS</div>
+          <div class="compare-result-card ${winner === "B" ? "winner" : ""}">
+            <span>${nameB}</span>
+            <strong>${formatRupiah(priceB)}</strong>
+          </div>
+        </div>
+        <div class="compare-diff-card">
+          <span>Selisih</span>
+          <strong>${formatRupiah(diff)}</strong>
+          <p>Dengan selisih itu kamu bisa:</p>
+          <ul>
+            <li>Beli ${gorengan} gorengan</li>
+            <li>Hemat ${daysSaved.toFixed(1)} hari kalau budget ${formatRupiah(budgetHarian)}</li>
+          </ul>
+        </div>
+        <span class="insight-pill">${insight}</span>
+        <p class="sheet-note">Keputusan tetap di tangan kamu 👍</p>
+      `;
+      showSheetView(compareInputView, compareResultView, compareBack, true);
+    }
+
+    function openSurvivalSheet() {
+      document.querySelectorAll("[data-strategy]").forEach((button) => button.classList.remove("selected"));
+      strategyMessage.classList.remove("visible");
+      openFeatureSheet(survivalSheet);
+    }
+
+    function closeSurvivalSheet() {
+      closeFeatureSheet(survivalSheet);
+    }
+
+    function switchPage(nextPage) {
+      if (nextPage === activePage) return;
+
+      const current = document.getElementById(`page-${activePage}`);
+      const next = document.getElementById(`page-${nextPage}`);
+      if (!next || !current) return;
+
+      closeCameraPopup();
+      current.classList.add("is-fading");
+
+      window.setTimeout(() => {
+        current.classList.remove("active", "is-fading");
+        next.classList.add("active", "is-fading");
+        activePage = nextPage;
+
+        navItems.forEach((item) => {
+          item.classList.toggle("active", item.dataset.targetPage === nextPage);
+        });
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.setTimeout(() => {
+          next.classList.remove("is-fading");
+          if (nextPage === "riwayat") renderHistoryPage(activeHistoryMode);
+        }, 30);
+      }, 100);
+    }
+
+    function openCameraPopup() {
+      cameraPopup.classList.add("open");
+      cameraPopup.setAttribute("aria-hidden", "false");
+    }
+
+    function closeCameraPopup() {
+      cameraPopup.classList.remove("open");
+      cameraPopup.setAttribute("aria-hidden", "true");
+    }
+
+    function toggleCameraPopup() {
+      if (cameraPopup.classList.contains("open")) {
+        closeCameraPopup();
+      } else {
+        openCameraPopup();
+      }
+    }
+
+    function enableInlineEdit(row) {
+      const valueWrap = row.querySelector(".setting-value");
+      const valueSpan = valueWrap.querySelector("span");
+      const button = valueWrap.querySelector(".edit-setting");
+      const originalValue = valueSpan.textContent;
+      const input = document.createElement("input");
+      input.className = "inline-edit";
+      input.value = originalValue;
+
+      valueSpan.replaceWith(input);
+      button.textContent = "Simpan";
+      input.focus();
+      input.select();
+
+      const save = () => {
+        saveInlineEdit(row, originalValue);
+      };
+
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") save();
+        if (event.key === "Escape") {
+          input.value = originalValue;
+          save();
+        }
+      });
+    }
+
+    function saveInlineEdit(row, fallbackValue = "") {
+      const valueWrap = row.querySelector(".setting-value");
+      const input = valueWrap.querySelector(".inline-edit");
+      const button = valueWrap.querySelector(".edit-setting");
+      if (!input) return;
+
+      const nextSpan = document.createElement("span");
+      nextSpan.textContent = input.value.trim() || fallbackValue;
+      input.replaceWith(nextSpan);
+      button.textContent = "Edit →";
+    }
+
+    function updateDashboard() {
+      const budgetHarian = getDailyBudget();
+      const mode = getMode(budgetHarian);
+      const percentUsed = Math.min(Math.round((state.todaySpent / budgetHarian) * 100), 999);
+      const ringOffset = 628 - (628 * Math.min(percentUsed, 100)) / 100;
+
+      root.style.setProperty("--accent", mode.color);
+      root.style.setProperty("--accent-deep", mode.deep);
+      root.style.setProperty("--mode-glow", mode.glow);
+      ringStart.setAttribute("stop-color", mode.color);
+      ringEnd.setAttribute("stop-color", mode.deep);
+      saldoDisplay.textContent = formatRupiah(state.saldoMakan);
+      modalSaldo.textContent = formatRupiah(state.saldoMakan);
+      budgetAmount.textContent = formatRupiah(budgetHarian);
+      daysSubtitle.textContent = `Sisa ${state.hariKeKiriman} hari ke kiriman berikutnya`;
+      modeBadge.textContent = `${mode.emoji} ${mode.label}`;
+      modeHint.textContent = `${mode.emoji} ${mode.label}`;
+      ringPercent.textContent = `${percentUsed}%`;
+      ringProgress.style.strokeDashoffset = ringOffset;
+      spentCopy.textContent = `${formatRupiah(state.todaySpent)} terpakai`;
+
+      renderQuickActions(mode);
+      renderChart(budgetHarian);
+      if (activePage === "riwayat") renderHistoryPage(activeHistoryMode);
+    }
+
+    function openModal() {
+      modalSaldo.textContent = formatRupiah(state.saldoMakan);
+      newSaldo.value = state.saldoMakan;
+      saldoModal.classList.add("open");
+      saldoModal.setAttribute("aria-hidden", "false");
+      setTimeout(() => newSaldo.focus(), 160);
+    }
+
+    function closeModal() {
+      saldoModal.classList.remove("open");
+      saldoModal.setAttribute("aria-hidden", "true");
+    }
+
+    function saveSaldo() {
+      const nextSaldo = Number(newSaldo.value);
+      if (!Number.isFinite(nextSaldo) || nextSaldo < 0) {
+        newSaldo.focus();
+        return;
+      }
+
+      state.saldoMakan = nextSaldo;
+      updateDashboard();
+      closeModal();
+    }
+
+    function openChat() {
+      chatPanel.classList.add("open");
+      chatOverlay.classList.add("open");
+      chatPanel.setAttribute("aria-hidden", "false");
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      setTimeout(() => chatInput.focus(), 180);
+    }
+
+    function closeChat() {
+      chatPanel.classList.remove("open");
+      chatOverlay.classList.remove("open");
+      chatPanel.setAttribute("aria-hidden", "true");
+    }
+
+    function appendMessage(text, type) {
+      const message = document.createElement("div");
+      message.className = `message ${type}`;
+      message.textContent = text;
+      chatMessages.appendChild(message);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    document.getElementById("editSaldo").addEventListener("click", openModal);
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    document.getElementById("saveSaldo").addEventListener("click", saveSaldo);
+    document.getElementById("openChat").addEventListener("click", openChat);
+    document.getElementById("closeChat").addEventListener("click", closeChat);
+    chatOverlay.addEventListener("click", closeChat);
+    closeRecipeSheetButton.addEventListener("click", closeRecipeSheet);
+    recipeSheet.addEventListener("click", (event) => {
+      if (event.target === recipeSheet) closeRecipeSheet();
+    });
+
+    quickActions.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-quick-action]");
+      if (!button) return;
+      handleQuickAction(button.dataset.quickAction);
+    });
+
+    document.getElementById("closeWorthSheet").addEventListener("click", closeWorthSheet);
+    document.getElementById("closeCompareSheet").addEventListener("click", closeCompareSheet);
+    document.getElementById("closeSurvivalSheet").addEventListener("click", closeSurvivalSheet);
+    worthBack.addEventListener("click", () => showSheetView(worthInputView, worthResultView, worthBack, false));
+    compareBack.addEventListener("click", () => showSheetView(compareInputView, compareResultView, compareBack, false));
+
+    worthSheet.addEventListener("click", (event) => {
+      if (event.target === worthSheet) closeWorthSheet();
+    });
+
+    compareSheet.addEventListener("click", (event) => {
+      if (event.target === compareSheet) closeCompareSheet();
+    });
+
+    survivalSheet.addEventListener("click", (event) => {
+      if (event.target === survivalSheet) closeSurvivalSheet();
+    });
+
+    worthForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const foodName = worthFood.value.trim() || "Makanan ini";
+      const foodPrice = parsePriceInput(worthPrice);
+      if (!foodPrice) {
+        worthPrice.focus();
+        return;
+      }
+      showWorthResult(foodName, foodPrice);
+    });
+
+    compareForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const nameA = compareAName.value.trim() || "Pilihan A";
+      const nameB = compareBName.value.trim() || "Pilihan B";
+      const priceA = parsePriceInput(compareAPrice);
+      const priceB = parsePriceInput(compareBPrice);
+      if (!priceA) {
+        compareAPrice.focus();
+        return;
+      }
+      if (!priceB) {
+        compareBPrice.focus();
+        return;
+      }
+      showCompareResult(nameA, priceA, nameB, priceB);
+    });
+
+    document.querySelectorAll("[data-strategy]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-strategy]").forEach((item) => item.classList.remove("selected"));
+        button.classList.add("selected");
+        strategyMessage.classList.toggle("visible", button.dataset.strategy === "cook");
+      });
+    });
+
+    goRecipeFromSurvival.addEventListener("click", () => {
+      closeSurvivalSheet();
+      switchPage("resep");
+    });
+
+    navItems.forEach((item) => {
+      item.addEventListener("click", () => switchPage(item.dataset.targetPage));
+    });
+
+    cameraNav.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleCameraPopup();
+    });
+
+    cameraPopup.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!cameraPopup.contains(event.target) && !cameraNav.contains(event.target)) {
+        closeCameraPopup();
+      }
+    });
+
+    document.querySelectorAll("[data-history-mode]").forEach((button) => {
+      button.addEventListener("click", () => renderHistoryPage(button.dataset.historyMode));
+    });
+
+    document.querySelectorAll(".filter-pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        document.querySelectorAll(".filter-pill").forEach((item) => item.classList.remove("active"));
+        pill.classList.add("active");
+      });
+    });
+
+    recipeList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-recipe-index]");
+      if (!button) return;
+      openRecipeSheet(recipes[Number(button.dataset.recipeIndex)]);
+    });
+
+    document.querySelectorAll(".settings-card .switch").forEach((button) => {
+      button.addEventListener("click", () => button.classList.toggle("on"));
+    });
+
+    document.querySelectorAll("[data-editable] .edit-setting").forEach((button) => {
+      button.addEventListener("click", () => {
+        const row = button.closest("[data-editable]");
+        if (row.querySelector(".inline-edit")) {
+          saveInlineEdit(row);
+        } else {
+          enableInlineEdit(row);
+        }
+      });
+    });
+
+    saldoModal.addEventListener("click", (event) => {
+      if (event.target === saldoModal) closeModal();
+    });
+
+    newSaldo.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") saveSaldo();
+      if (event.key === "Escape") closeModal();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeModal();
+        closeChat();
+        closeCameraPopup();
+        closeRecipeSheet();
+        closeWorthSheet();
+        closeCompareSheet();
+        closeSurvivalSheet();
+      }
+    });
+
+    chatForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      appendMessage(text, "user");
+      chatInput.value = "";
+
+      window.setTimeout(() => {
+        appendMessage("Oke, gue bantu hitung yang paling masuk akal buat budget hari ini.", "ai");
+      }, 450);
+    });
+
+    renderHistory();
+    renderHistoryPage();
+    renderRecipes();
+    updateDashboard();
+  </script>
+</body>
+</html>
