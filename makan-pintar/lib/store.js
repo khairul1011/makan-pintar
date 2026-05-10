@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useContext, useReducer, useEffect, useCallback } from "react";
+import { createContext, useContext, useReducer, useEffect, useCallback, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { INITIAL_STATE } from "./constants";
-import { loadState, saveState } from "./storage";
+import { createClient } from "./supabase";
 
 const AppContext = createContext(null);
 
@@ -32,19 +33,39 @@ function appReducer(state, action) {
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, INITIAL_STATE);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+  const supabase = createClient();
 
-  // Hydrate from localStorage on mount
+  // Check auth state
   useEffect(() => {
-    const saved = loadState();
-    if (saved) {
-      dispatch({ type: "HYDRATE", payload: saved });
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
+
+  // Redirect based on auth
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (!user && pathname !== "/login") {
+      router.replace("/login");
+    } else if (user && pathname === "/login") {
+      router.replace("/");
     }
-  }, []);
-
-  // Persist to localStorage on change
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
+  }, [user, authLoading, pathname, router]);
 
   const updateSaldo = useCallback((saldo) => {
     dispatch({ type: "UPDATE_SALDO", payload: saldo });
@@ -65,15 +86,31 @@ export function AppProvider({ children }) {
     });
   }, [state.notifications]);
 
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    router.replace("/login");
+  }, [supabase, router]);
+
+  // Show nothing while checking auth (prevents flash)
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
+        <p style={{ color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>⏳ Memuat...</p>
+      </div>
+    );
+  }
+
   return (
     <AppContext.Provider
       value={{
         state,
         dispatch,
+        user,
         updateSaldo,
         addFoodEntry,
         updateSetting,
         toggleNotification,
+        signOut,
       }}
     >
       {children}
