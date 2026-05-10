@@ -37,24 +37,107 @@ export function AppProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
+
+  const fetchWithAuth = useCallback(async (url, options = {}) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+  }, [supabase]);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [profileRes, statsRes, entriesRes] = await Promise.all([
+        fetchWithAuth("/api/profile"),
+        fetchWithAuth("/api/stats/weekly"),
+        fetchWithAuth("/api/food-entries")
+      ]);
+
+      if (profileRes.ok && statsRes.ok && entriesRes.ok) {
+        const { profile } = await profileRes.json();
+        const stats = await statsRes.json();
+        const { entries } = await entriesRes.json();
+
+        // Format dates correctly in local timezone
+        const todayStr = new Date().toLocaleDateString('en-CA');
+
+        dispatch({
+          type: "HYDRATE",
+          payload: {
+            saldoMakan: profile.saldo_makan,
+            hariKeKiriman: profile.hari_ke_kiriman,
+            targetCalories: profile.target_calories,
+            targetProtein: profile.target_protein,
+            totalKiriman: profile.total_kiriman,
+            tanggalKiriman: profile.tanggal_kiriman,
+            notifications: profile.notifications || INITIAL_STATE.notifications,
+            todaySpent: stats.todaySpent || 0,
+            weeklySpending: stats.weeklySpending || INITIAL_STATE.weeklySpending,
+            weeklyCalories: stats.weeklyCalories || INITIAL_STATE.weeklyCalories,
+            historyEntries: entries.map(e => ({
+               date: new Date(e.entry_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' }),
+               emoji: e.emoji,
+               name: e.name,
+               meal: e.meal,
+               price: e.price,
+               calories: e.calories
+            })),
+            todayEntries: entries.filter(e => e.entry_date === todayStr).map(e => ({
+               id: e.id,
+               emoji: e.emoji,
+               name: e.name,
+               meal: e.meal,
+               price: e.price,
+               calories: e.calories
+            })),
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load initial data", error);
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [fetchWithAuth]);
 
   // Check auth state
   useEffect(() => {
-    // Get initial session
+    let mounted = true;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
+      if (!mounted) return;
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        loadData();
+      } else {
+        setAuthLoading(false);
+      }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        loadData();
+      } else {
+        setAuthLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase, loadData]);
 
   // Redirect based on auth
   useEffect(() => {
@@ -67,24 +150,89 @@ export function AppProvider({ children }) {
     }
   }, [user, authLoading, pathname, router]);
 
-  const updateSaldo = useCallback((saldo) => {
+  const updateSaldo = useCallback(async (saldo) => {
     dispatch({ type: "UPDATE_SALDO", payload: saldo });
-  }, []);
+    try {
+      await fetchWithAuth("/api/profile", {
+        method: "PUT",
+        body: JSON.stringify({ saldo_makan: saldo }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }, [fetchWithAuth]);
 
-  const addFoodEntry = useCallback((entry) => {
-    dispatch({ type: "ADD_FOOD_ENTRY", payload: entry });
-  }, []);
+  const addFoodEntry = useCallback(async (entry) => {
+    // Optimistic logic not fully possible without DB ID, so we wait for DB to return
+    try {
+      const res = await fetchWithAuth("/api/food-entries", {
+        method: "POST",
+        body: JSON.stringify({
+          emoji: entry.emoji,
+          name: entry.name,
+          meal: entry.meal,
+          calories: entry.calories,
+          price: entry.price,
+          entry_date: new Date().toLocaleDateString('en-CA')
+        }),
+      });
+      if (res.ok) {
+        const { entry: dbEntry } = await res.json();
+        dispatch({ type: "ADD_FOOD_ENTRY", payload: {
+           id: dbEntry.id,
+           emoji: dbEntry.emoji,
+           name: dbEntry.name,
+           meal: dbEntry.meal,
+           price: dbEntry.price,
+           calories: dbEntry.calories
+        } });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, [fetchWithAuth]);
 
-  const updateSetting = useCallback((key, value) => {
+  const updateSetting = useCallback(async (key, value) => {
     dispatch({ type: "UPDATE_SETTING", payload: { key, value } });
-  }, []);
+    
+    const snakeMap = {
+      saldoMakan: "saldo_makan",
+      hariKeKiriman: "hari_ke_kiriman",
+      targetCalories: "target_calories",
+      targetProtein: "target_protein",
+      totalKiriman: "total_kiriman",
+      tanggalKiriman: "tanggal_kiriman"
+    };
+    
+    const dbKey = snakeMap[key];
+    if (dbKey) {
+      try {
+        await fetchWithAuth("/api/profile", {
+          method: "PUT",
+          body: JSON.stringify({ [dbKey]: value }),
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }, [fetchWithAuth]);
 
-  const toggleNotification = useCallback((key) => {
+  const toggleNotification = useCallback(async (key) => {
+    const newStatus = !state.notifications[key];
     dispatch({
       type: "SET_NOTIFICATIONS",
-      payload: { [key]: !state.notifications[key] },
+      payload: { [key]: newStatus },
     });
-  }, [state.notifications]);
+    
+    try {
+      await fetchWithAuth("/api/profile", {
+        method: "PUT",
+        body: JSON.stringify({ notifications: { ...state.notifications, [key]: newStatus } }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }, [state.notifications, fetchWithAuth]);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();

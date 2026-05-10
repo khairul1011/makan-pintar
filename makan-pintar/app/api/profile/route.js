@@ -6,13 +6,42 @@ export async function GET(request) {
   const { user, error, supabase } = await getAuthUser(request);
   if (!user) return unauthorized(error);
 
-  const { data, error: dbError } = await supabase
+  let { data, error: dbError } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (dbError) return serverError(dbError.message);
+  if (dbError) {
+    console.error("Profile dbError:", dbError);
+    return serverError(dbError.message);
+  }
+
+  if (!data) {
+    const defaultProfile = {
+      id: user.id,
+      full_name: user.user_metadata?.full_name || "Pengguna",
+      saldo_makan: 420000,
+      hari_ke_kiriman: 12,
+      total_kiriman: 1500000,
+      tanggal_kiriman: "2025-06-30",
+      target_calories: 2000,
+      target_protein: 60,
+      notifications: { budgetWarning: true, logReminder: true, kirimanReminder: false }
+    };
+
+    const { data: newData, error: insertError } = await supabase
+      .from("profiles")
+      .insert(defaultProfile)
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("Profile insertError:", insertError);
+      return serverError(insertError.message);
+    }
+    data = newData;
+  }
 
   return NextResponse.json({ profile: data });
 }

@@ -7,9 +7,10 @@ import SettingsCard from "@/components/profil/SettingsCard";
 import SettingRow from "@/components/profil/SettingRow";
 import { useApp } from "@/lib/store";
 import { formatRupiah, parsePriceInput, formatTanggalBulan } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilPage() {
-  const { state, updateSetting, toggleNotification, updateSaldo } = useApp();
+  const { state, updateSetting, toggleNotification, updateSaldo, signOut } = useApp();
 
   return (
     <>
@@ -88,6 +89,16 @@ export default function ProfilPage() {
                 <button className="edit-setting" type="button">Kirim →</button>
               </div>
             </SettingsCard>
+
+            <div className="flex justify-center mt-6 mb-8">
+              <Button 
+                variant="destructive" 
+                onClick={signOut} 
+                className="w-full max-w-[200px] rounded-full shadow-[0_4px_15px_rgba(239,68,68,0.2)] dark:shadow-[0_4px_15px_rgba(239,68,68,0.3)]"
+              >
+                Keluar Akun
+              </Button>
+            </div>
           </section>
         </main>
       </AppShell>
