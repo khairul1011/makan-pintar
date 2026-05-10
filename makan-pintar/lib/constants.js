@@ -123,7 +123,7 @@ export const INITIAL_STATE = {
   targetCalories: 2000,
   targetProtein: 60,
   totalKiriman: 1500000,
-  tanggalKiriman: "30 Juni",
+  tanggalKiriman: "2025-06-30",
   history: [
     { day: "Sel", date: "17 Juni", food: "Bubur Ayam", amount: 25000 },
     { day: "Rab", date: "18 Juni", food: "Soto Ayam", amount: 38000 },

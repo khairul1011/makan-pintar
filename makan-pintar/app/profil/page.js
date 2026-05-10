@@ -6,7 +6,7 @@ import ProfileHeader from "@/components/profil/ProfileHeader";
 import SettingsCard from "@/components/profil/SettingsCard";
 import SettingRow from "@/components/profil/SettingRow";
 import { useApp } from "@/lib/store";
-import { formatRupiah, parsePriceInput } from "@/lib/utils";
+import { formatRupiah, parsePriceInput, formatTanggalBulan } from "@/lib/utils";
 
 export default function ProfilPage() {
   const { state, updateSetting, toggleNotification, updateSaldo } = useApp();
@@ -29,6 +29,8 @@ export default function ProfilPage() {
               <SettingRow 
                 label="Tanggal Kiriman Berikutnya" 
                 value={state.tanggalKiriman} 
+                displayValue={formatTanggalBulan(state.tanggalKiriman)}
+                type="date"
                 editable 
                 onSave={(val) => updateSetting("tanggalKiriman", val)}
               />

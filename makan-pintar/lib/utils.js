@@ -1,3 +1,10 @@
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+
 /**
  * Format angka ke format Rupiah Indonesia
  * @param {number} value
@@ -54,4 +61,20 @@ export function getMode(budgetHarian, modeConfig) {
  */
 export function parsePriceInput(value) {
   return Number(String(value).replace(/[^\d]/g, ""));
+}
+
+/**
+ * Format tanggal YYYY-MM-DD ke "DD Bulan" (contoh: "30 Juni")
+ * @param {string} dateString
+ * @returns {string}
+ */
+export function formatTanggalBulan(dateString) {
+  if (!dateString || !dateString.includes("-")) return dateString;
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  
+  return date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+  });
 }
