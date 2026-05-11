@@ -4,6 +4,7 @@ import { createContext, useContext, useReducer, useEffect, useCallback, useState
 import { useRouter, usePathname } from "next/navigation";
 import { INITIAL_STATE } from "./constants";
 import { createClient } from "./supabase";
+import { calculateDaysRemaining } from "./utils";
 
 const AppContext = createContext(null);
 
@@ -23,9 +24,17 @@ function appReducer(state, action) {
         notifications: { ...state.notifications, ...action.payload },
       };
     case "UPDATE_SETTING":
-      return { ...state, [action.payload.key]: action.payload.value };
+      const updatedState = { ...state, [action.payload.key]: action.payload.value };
+      if (action.payload.key === "tanggalKiriman") {
+        updatedState.hariKeKiriman = calculateDaysRemaining(action.payload.value);
+      }
+      return updatedState;
     case "HYDRATE":
-      return { ...state, ...action.payload };
+      return { 
+        ...state, 
+        ...action.payload,
+        hariKeKiriman: calculateDaysRemaining(action.payload.tanggalKiriman || state.tanggalKiriman)
+      };
     default:
       return state;
   }

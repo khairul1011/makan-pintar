@@ -78,3 +78,25 @@ export function formatTanggalBulan(dateString) {
     month: "long",
   });
 }
+
+/**
+ * Hitung sisa hari dari hari ini ke tanggal target
+ * @param {string} targetDateString (Format YYYY-MM-DD)
+ * @returns {number}
+ */
+export function calculateDaysRemaining(targetDateString) {
+  if (!targetDateString) return 0;
+  
+  const targetDate = new Date(targetDateString);
+  const today = new Date();
+  
+  // Set jam ke 00:00:00 untuk akurasi hari
+  targetDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  
+  const diffTime = targetDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays > 0 ? diffDays : 0;
+}
+
