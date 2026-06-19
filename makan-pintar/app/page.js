@@ -17,9 +17,7 @@ export default function Dashboard() {
   return (
     <>
       <AppShell>
-        <div onClick={() => setChatOpen(true)}>
-          <Navbar />
-        </div>
+        <Navbar onChatOpen={() => setChatOpen(true)} />
         
         <main className="dashboard-grid app-page active">
           <section className="column left-column" aria-label="Ringkasan dan log makan">

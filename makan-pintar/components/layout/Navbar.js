@@ -2,7 +2,7 @@
 
 import GlassPill from "../ui/GlassPill";
 
-export default function Navbar() {
+export default function Navbar({ onChatOpen }) {
   return (
     <nav className="navbar" aria-label="Navigasi utama">
       <div className="brand">
@@ -12,10 +12,16 @@ export default function Navbar() {
           <span className="brand-subtitle">Budget makan harian yang ngerti kondisi dompet</span>
         </div>
       </div>
-      <button className="ai-button glass-pill" type="button" aria-label="Buka chat AI">
+      <button 
+        className="ai-button glass-pill" 
+        type="button" 
+        aria-label="Buka chat AI"
+        onClick={onChatOpen}
+      >
         <span aria-hidden="true">💬</span>
         <span>AI Chat</span>
       </button>
     </nav>
   );
 }
+
